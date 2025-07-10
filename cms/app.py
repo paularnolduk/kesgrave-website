@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_cors import CORS
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 import json
 import uuid
 from werkzeug.utils import secure_filename
@@ -110,7 +109,6 @@ class Event(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    time = db.Column(db.String(10))
     location = db.Column(db.String(200))
     category = db.Column(db.String(100))
     status = db.Column(db.String(20), default='published')
@@ -124,7 +122,6 @@ class Meeting(db.Model):
     title = db.Column(db.String(200), nullable=False)
     type = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    time = db.Column(db.String(10))
     location = db.Column(db.String(200))
     agenda_url = db.Column(db.String(255))
     minutes_url = db.Column(db.String(255))
@@ -214,12 +211,15 @@ def get_homepage_events():
         events = Event.query.filter_by(status='published').order_by(Event.date.asc()).limit(6).all()
         events_data = []
         for event in events:
+            # Extract time from datetime if available
+            time_str = event.date.strftime('%H:%M') if event.date else None
+            
             events_data.append({
                 'id': event.id,
                 'title': event.title,
                 'description': event.description,
                 'date': event.date.isoformat() if event.date else None,
-                'time': event.time,
+                'time': time_str,
                 'location': event.location,
                 'category': event.category,
                 'featured_image': event.featured_image,
@@ -236,12 +236,15 @@ def get_homepage_meetings():
         meetings = Meeting.query.filter_by(status='scheduled').order_by(Meeting.date.asc()).limit(3).all()
         meetings_data = []
         for meeting in meetings:
+            # Extract time from datetime if available
+            time_str = meeting.date.strftime('%H:%M') if meeting.date else None
+            
             meetings_data.append({
                 'id': meeting.id,
                 'title': meeting.title,
                 'type': meeting.type,
                 'date': meeting.date.isoformat() if meeting.date else None,
-                'time': meeting.time,
+                'time': time_str,
                 'location': meeting.location,
                 'agenda_url': meeting.agenda_url,
                 'minutes_url': meeting.minutes_url
@@ -299,12 +302,15 @@ def get_events():
         events = Event.query.filter_by(status='published').order_by(Event.date.desc()).all()
         events_data = []
         for event in events:
+            # Extract time from datetime if available
+            time_str = event.date.strftime('%H:%M') if event.date else None
+            
             events_data.append({
                 'id': event.id,
                 'title': event.title,
                 'description': event.description,
                 'date': event.date.isoformat() if event.date else None,
-                'time': event.time,
+                'time': time_str,
                 'location': event.location,
                 'category': event.category,
                 'featured_image': event.featured_image,
@@ -324,12 +330,15 @@ def get_meetings(meeting_type):
         
         meetings_data = []
         for meeting in meetings:
+            # Extract time from datetime if available
+            time_str = meeting.date.strftime('%H:%M') if meeting.date else None
+            
             meetings_data.append({
                 'id': meeting.id,
                 'title': meeting.title,
                 'type': meeting.type,
                 'date': meeting.date.isoformat() if meeting.date else None,
-                'time': meeting.time,
+                'time': time_str,
                 'location': meeting.location,
                 'agenda_url': meeting.agenda_url,
                 'minutes_url': meeting.minutes_url,
@@ -619,7 +628,6 @@ with app.app_context():
             title='Community Clean-Up Day',
             description='Join us for our monthly community clean-up event. Help keep Kesgrave beautiful and meet your neighbors.',
             date=datetime(2025, 7, 15, 10, 0),
-            time='10:00',
             location='Kesgrave Recreation Ground',
             category='Community',
             status='published',
@@ -632,7 +640,6 @@ with app.app_context():
             title='Town Council Meeting',
             type='Council Meeting',
             date=datetime(2025, 7, 20, 19, 0),
-            time='19:00',
             location='Community Centre',
             status='scheduled'
         )
