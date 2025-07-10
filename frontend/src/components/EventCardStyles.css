@@ -1,0 +1,109 @@
+/* Additional Event Card Styles for Modal Integration */
+
+/* Event Card Hover Effects */
+.event-card {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.event-card:focus {
+  outline: 3px solid #97bc62;
+  outline-offset: 2px;
+}
+
+/* Event Card Footer */
+.event-card-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.view-details-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-style: italic;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.event-card:hover .view-details-text {
+  opacity: 1;
+}
+
+/* Event Card Click Animation */
+.event-card:active {
+  transform: translateY(-2px);
+  transition: transform 0.1s ease;
+}
+
+/* Event Image Overlay for Better Text Readability */
+.event-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.event-card:hover .event-image::after {
+  opacity: 1;
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .event-card,
+  .event-card:hover,
+  .view-details-text,
+  .event-image::after {
+    transition: none;
+  }
+  
+  .event-card:hover {
+    transform: none;
+  }
+}
+
+/* Mobile Touch Improvements */
+@media (max-width: 768px) {
+  .event-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(151, 188, 98, 0.3);
+  }
+  
+  .view-details-text {
+    opacity: 1; /* Always show on mobile */
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .event-card {
+    border: 2px solid #000;
+  }
+  
+  .event-card:hover {
+    border-color: #97bc62;
+    box-shadow: 0 0 0 3px rgba(151, 188, 98, 0.5);
+  }
+  
+  .view-details-text {
+    color: #000;
+    font-weight: 600;
+  }
+}
+

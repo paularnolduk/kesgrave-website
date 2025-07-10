@@ -1,0 +1,423 @@
+/* Councillor Modal Styles - Based on EventModal.css */
+
+.councillor-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.councillor-modal-container {
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.councillor-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.councillor-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.councillor-modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+/* Header Section */
+.councillor-modal-header {
+  position: relative;
+  height: 300px;
+  background: linear-gradient(135deg, #2c5f2d 0%, #97bc62 100%);
+  overflow: hidden;
+}
+
+.councillor-modal-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  filter: brightness(0.9);
+}
+
+.councillor-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+}
+
+.councillor-modal-header-content {
+  color: white;
+  width: 100%;
+}
+
+.councillor-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.councillor-modal-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.councillor-modal-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.councillor-modal-subtitle {
+  font-size: 1.25rem;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Body Section */
+.councillor-modal-body {
+  padding: 2rem;
+}
+
+.councillor-modal-section {
+  margin-bottom: 2rem;
+}
+
+.councillor-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.councillor-modal-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c5f2d;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Introduction */
+.councillor-intro {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #2c5f2d;
+}
+
+.intro-text {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: #374151;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Biography */
+.councillor-bio p {
+  line-height: 1.7;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.councillor-bio p:last-child {
+  margin-bottom: 0;
+}
+
+/* Details Grid */
+.councillor-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.councillor-detail-card {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.councillor-detail-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #2c5f2d;
+  margin-bottom: 1rem;
+}
+
+.detail-primary {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.detail-secondary {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.detail-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2c5f2d;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.detail-link:hover {
+  color: #1f4a21;
+  background: rgba(44, 95, 45, 0.1);
+  padding-left: 0.5rem;
+}
+
+/* Social Links */
+.councillor-social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.social-link-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.social-link-item:hover {
+  background: #2c5f2d;
+  color: white;
+  border-color: #2c5f2d;
+  transform: translateY(-1px);
+}
+
+/* Ward Information */
+.ward-info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.ward-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ward-info-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+.ward-color-indicator {
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.ward-info-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.ward-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Loading and Error States */
+.councillor-modal-loading,
+.councillor-modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #2c5f2d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.retry-button {
+  background: #2c5f2d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background: #1f4a21;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .councillor-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .councillor-modal-header {
+    height: 250px;
+  }
+
+  .councillor-modal-overlay {
+    padding: 1.5rem;
+  }
+
+  .councillor-modal-title {
+    font-size: 2rem;
+  }
+
+  .councillor-modal-subtitle {
+    font-size: 1.125rem;
+  }
+
+  .councillor-modal-body {
+    padding: 1.5rem;
+  }
+
+  .councillor-details-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .councillor-detail-card {
+    padding: 1rem;
+  }
+
+  .councillor-social-links {
+    flex-direction: column;
+  }
+
+  .social-link-item {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .councillor-modal-container {
+    max-height: 95vh;
+  }
+
+  .councillor-modal-header {
+    height: 200px;
+  }
+
+  .councillor-modal-overlay {
+    padding: 1rem;
+  }
+
+  .councillor-modal-title {
+    font-size: 1.75rem;
+  }
+
+  .councillor-modal-body {
+    padding: 1rem;
+  }
+
+  .councillor-modal-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .councillor-intro {
+    padding: 1rem;
+  }
+
+  .intro-text {
+    font-size: 1rem;
+  }
+}
+

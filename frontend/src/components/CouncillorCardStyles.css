@@ -1,0 +1,349 @@
+/* Councillor Card Styles - Based on EventCardStyles.css */
+
+.councillor-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.councillor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.councillor-card:focus {
+  outline: 2px solid #2c5f2d;
+  outline-offset: 2px;
+}
+
+/* Councillor Image */
+.councillor-image {
+  position: relative;
+  height: 200px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  overflow: hidden;
+}
+
+.councillor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.councillor-card:hover .councillor-image img {
+  transform: scale(1.05);
+}
+
+/* Ward Tags Overlay */
+.councillor-tags-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+}
+
+.councillor-tag-overlay {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.councillor-tag-more {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Councillor Content */
+.councillor-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.councillor-header {
+  margin-bottom: 1rem;
+}
+
+.councillor-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.3;
+}
+
+.councillor-title {
+  color: #2c5f2d;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Description */
+.councillor-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+/* Contact Info */
+.councillor-contact {
+  margin-bottom: 1rem;
+}
+
+.councillor-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.councillor-contact-item:last-child {
+  margin-bottom: 0;
+}
+
+.councillor-contact-item svg {
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.councillor-contact-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ward Tags in Content */
+.councillor-tags-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.councillor-tag-content {
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Read More Button */
+.councillor-read-more {
+  width: 100%;
+  background: #2c5f2d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.councillor-read-more:hover {
+  background: #1f4a21;
+  transform: translateY(-1px);
+}
+
+.councillor-read-more:focus {
+  outline: 2px solid #2c5f2d;
+  outline-offset: 2px;
+}
+
+/* Loading State */
+.councillor-card-loading {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 400px;
+}
+
+.councillor-image-skeleton {
+  height: 200px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+.councillor-content-skeleton {
+  padding: 1.5rem;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Error State */
+.councillor-card-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  color: #dc2626;
+}
+
+.councillor-error-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  color: #ef4444;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .councillor-content {
+    padding: 1.25rem;
+  }
+
+  .councillor-name {
+    font-size: 1.125rem;
+  }
+
+  .councillor-title {
+    font-size: 0.8rem;
+  }
+
+  .councillor-description {
+    font-size: 0.8rem;
+  }
+
+  .councillor-contact-item {
+    font-size: 0.75rem;
+  }
+
+  .councillor-tags-overlay {
+    top: 8px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+  }
+
+  .councillor-tag-overlay {
+    padding: 3px 6px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .councillor-image {
+    height: 180px;
+  }
+
+  .councillor-content {
+    padding: 1rem;
+  }
+
+  .councillor-name {
+    font-size: 1rem;
+  }
+
+  .councillor-description {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .councillor-read-more {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .councillor-card,
+  .councillor-image img,
+  .councillor-read-more {
+    transition: none;
+  }
+
+  .councillor-card:hover {
+    transform: none;
+  }
+
+  .councillor-card:hover .councillor-image img {
+    transform: none;
+  }
+
+  .councillor-read-more:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .councillor-card {
+    border: 2px solid #000;
+  }
+
+  .councillor-name {
+    color: #000;
+  }
+
+  .councillor-title {
+    color: #000;
+  }
+
+  .councillor-description {
+    color: #333;
+  }
+
+  .councillor-read-more {
+    background: #000;
+    border: 2px solid #000;
+  }
+
+  .councillor-read-more:hover {
+    background: #333;
+  }
+}
+

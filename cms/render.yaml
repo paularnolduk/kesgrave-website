@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: kesgrave-cms
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://your-frontend-domain.onrender.com
+    autoDeploy: false
+
+databases:
+  - name: kesgrave-cms-db
+    databaseName: kesgrave_cms
+    user: kesgrave_user
+
