@@ -11,7 +11,18 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'kesgrave-cms-secret-key-2025')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///kesgrave_working.db')
+
+# Database configuration - FIXED for Render deployment
+if os.environ.get("RENDER"):
+    # On Render, use a persistent SQLite database in /opt/render/project/src
+    db_path = "/opt/render/project/src/kesgrave_working.db"
+    print(f"📁 Render environment detected, using database path: {db_path}")
+else:
+    # Local development
+    db_path = "kesgrave_working.db"
+    print(f"📁 Local environment, using database path: {db_path}")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
@@ -23,6 +34,7 @@ login_manager.login_view = 'login'
 # Enable CORS
 CORS(app, origins=[
     os.environ.get('FRONTEND_URL', 'http://localhost:3000'),
+    'https://kesgrave-cms.onrender.com',
     'https://kesgravetowncouncil.onrender.com'
 ])
 
@@ -49,415 +61,349 @@ class Event(db.Model):
 class Meeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
     date = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-# API Routes for Frontend
-@app.route('/api/footer-links', methods=['GET'])
-def get_footer_links():
-    """API endpoint to get footer links for the frontend website"""
-    try:
-        footer_links = [
-            {'title': 'Privacy Policy', 'url': '/privacy-policy'},
-            {'title': 'Terms of Service', 'url': '/terms'},
-            {'title': 'Accessibility Statement', 'url': '/accessibility'},
-            {'title': 'Contact Us', 'url': '/contact'},
-            {'title': 'Freedom of Information', 'url': '/foi'},
-            {'title': 'Complaints Procedure', 'url': '/complaints'}
-        ]
-        return jsonify(footer_links)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+class Slide(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text)
+    image_url = db.Column(db.String(500))
+    is_active = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-@app.route('/api/header-links', methods=['GET'])
-def get_header_links():
-    """API endpoint to get header navigation links"""
-    try:
-        header_links = [
-            {'title': 'Home', 'url': '/', 'active': True},
-            {'title': 'Councillors', 'url': '/councillors', 'active': True},
-            {'title': 'Information', 'url': '/content', 'active': True},
-            {'title': 'Meetings', 'url': '/ktc-meetings', 'active': True},
-            {'title': 'Things to Do', 'url': '/ktc-events', 'active': True},
-            {'title': 'Contact', 'url': '/contact', 'active': True}
-        ]
-        return jsonify(header_links)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+# Routes
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
 
-@app.route('/api/homepage/slides', methods=['GET'])
-def get_homepage_slides():
-    """Get homepage slides"""
-    try:
-        # Return sample slide data
-        slides_data = [{
-            'id': 1,
-            'title': 'Welcome to Kesgrave Town Council',
-            'description': 'Serving our community with transparency, dedication, and commitment to local democracy.',
-            'action_button_text': 'Learn More',
-            'action_button_url': '/content',
-            'featured_image': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-            'is_featured': True
-        }]
-        return jsonify(slides_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/homepage/events', methods=['GET'])
-def get_homepage_events():
-    """Get events for homepage"""
-    try:
-        events = Event.query.order_by(Event.date.asc()).limit(6).all()
-        events_data = []
-        for event in events:
-            # Extract time from datetime if available
-            time_str = event.date.strftime('%H:%M') if event.date else None
-            
-            events_data.append({
-                'id': event.id,
-                'title': event.title,
-                'description': event.description,
-                'date': event.date.isoformat() if event.date else None,
-                'time': time_str,
-                'location': event.location,
-                'category': 'Community',  # Default category
-                'featured_image': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'first_featured_link': f'/ktc-events/{event.id}'
-            })
-        return jsonify(events_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/homepage/meetings', methods=['GET'])
-def get_homepage_meetings():
-    """Get meetings for homepage"""
-    try:
-        meetings = Meeting.query.order_by(Meeting.date.asc()).limit(3).all()
-        meetings_data = []
-        for meeting in meetings:
-            # Extract time from datetime if available
-            time_str = meeting.date.strftime('%H:%M') if meeting.date else None
-            
-            meetings_data.append({
-                'id': meeting.id,
-                'title': meeting.title,
-                'type': 'Council Meeting',  # Default type
-                'date': meeting.date.isoformat() if meeting.date else None,
-                'time': time_str,
-                'location': meeting.location,
-                'agenda_url': None,
-                'minutes_url': None
-            })
-        return jsonify(meetings_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/homepage/quick-links', methods=['GET'])
-def get_homepage_quick_links():
-    """Get quick links for homepage"""
-    try:
-        links_data = [
-            {'id': 1, 'title': 'Planning Applications', 'url': '/content/planning', 'icon': 'fas fa-building', 'description': 'View planning applications'},
-            {'id': 2, 'title': 'Council Tax', 'url': '/content/council-tax', 'icon': 'fas fa-pound-sign', 'description': 'Council tax information'},
-            {'id': 3, 'title': 'Waste Collection', 'url': '/content/waste', 'icon': 'fas fa-trash', 'description': 'Waste collection schedules'},
-            {'id': 4, 'title': 'Report Issue', 'url': '/contact', 'icon': 'fas fa-exclamation-triangle', 'description': 'Report a local issue'}
-        ]
-        return jsonify(links_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/councillors', methods=['GET'])
-def get_councillors():
-    """Get all published councillors"""
-    try:
-        # Return empty array for now - can be populated later
-        return jsonify([])
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/events', methods=['GET'])
-def get_events():
-    """Get all published events"""
-    try:
-        events = Event.query.order_by(Event.date.desc()).all()
-        events_data = []
-        for event in events:
-            # Extract time from datetime if available
-            time_str = event.date.strftime('%H:%M') if event.date else None
-            
-            events_data.append({
-                'id': event.id,
-                'title': event.title,
-                'description': event.description,
-                'date': event.date.isoformat() if event.date else None,
-                'time': time_str,
-                'location': event.location,
-                'category': 'Community',  # Default category
-                'featured_image': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'first_featured_link': f'/ktc-events/{event.id}'
-            })
-        return jsonify(events_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/meetings/<meeting_type>', methods=['GET'])
-def get_meetings(meeting_type):
-    """Get meetings by type"""
-    try:
-        meetings = Meeting.query.order_by(Meeting.date.desc()).all()
-        meetings_data = []
-        for meeting in meetings:
-            # Extract time from datetime if available
-            time_str = meeting.date.strftime('%H:%M') if meeting.date else None
-            
-            meetings_data.append({
-                'id': meeting.id,
-                'title': meeting.title,
-                'type': 'Council Meeting',  # Default type
-                'date': meeting.date.isoformat() if meeting.date else None,
-                'time': time_str,
-                'location': meeting.location,
-                'agenda_url': None,
-                'minutes_url': None,
-                'status': 'scheduled'
-            })
-        return jsonify(meetings_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/content/<category>/<page>', methods=['GET'])
-def get_content_page(category, page):
-    """Get specific content page from CMS"""
-    try:
-        # Return sample content for now
-        return jsonify({
-            'id': 1,
-            'title': f'{page.replace("-", " ").title()}',
-            'content': f'<h1>{page.replace("-", " ").title()}</h1><p>Content for {page} will be available soon.</p>',
-            'category': category.replace('-', ' ').title(),
-            'slug': page,
-            'meta_description': f'Information about {page.replace("-", " ")}',
-            'featured_image': None,
-            'last_updated': datetime.utcnow().isoformat()
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# Authentication Routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         
-        # Simple authentication (change this in production!)
-        if username == 'admin' and password == 'admin123':
-            user = AdminUser(1, username)
+        # Simple authentication (you should use proper password hashing in production)
+        if username == 'admin' and password == os.environ.get('ADMIN_PASSWORD', 'admin123'):
+            user = AdminUser(1)
             login_user(user)
+            flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
-        flash('Invalid credentials')
+        else:
+            flash('Invalid username or password!', 'error')
     
     return render_template_string('''
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Kesgrave CMS Login</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <title>Kesgrave CMS - Login</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
+            .form-group { margin-bottom: 15px; }
+            label { display: block; margin-bottom: 5px; font-weight: bold; }
+            input[type="text"], input[type="password"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+            button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+            button:hover { background-color: #0056b3; }
+            .alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+            .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+            .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+            h1 { text-align: center; color: #333; }
+        </style>
     </head>
-    <body class="bg-light">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card mt-5">
-                        <div class="card-header">
-                            <h3 class="text-center">🏛️ Kesgrave CMS</h3>
-                        </div>
-                        <div class="card-body">
-                            {% with messages = get_flashed_messages() %}
-                                {% if messages %}
-                                    <div class="alert alert-danger">{{ messages[0] }}</div>
-                                {% endif %}
-                            {% endwith %}
-                            <form method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Username</label>
-                                    <input type="text" name="username" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Password</label>
-                                    <input type="password" name="password" class="form-control" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Login</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+    <body>
+        <h1>Kesgrave CMS</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
             </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        
+        <div style="margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
+            <p>Default credentials: admin / admin123</p>
+            <p>Database: {{ db_path }}</p>
         </div>
     </body>
     </html>
-    ''')
+    ''', db_path=db_path)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
+    flash('Logged out successfully!', 'success')
     return redirect(url_for('login'))
 
 @app.route('/dashboard')
-@app.route('/')
 @login_required
 def dashboard():
+    # Get counts for dashboard
+    event_count = Event.query.count()
+    meeting_count = Meeting.query.count()
+    slide_count = Slide.query.count()
+    
     return render_template_string('''
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Kesgrave CMS Dashboard</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <title>Kesgrave CMS - Dashboard</title>
         <style>
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                width: 260px;
-                background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-                color: white;
-                z-index: 1000;
-                overflow-y: auto;
-            }
-            .main-content {
-                margin-left: 260px;
-                padding: 2rem;
-                background-color: #f8f9fa;
-                min-height: 100vh;
-            }
-            .nav-link {
-                color: rgba(255,255,255,0.8);
-                padding: 0.75rem 1.5rem;
-                display: block;
-                text-decoration: none;
-                transition: all 0.3s ease;
-            }
-            .nav-link:hover, .nav-link.active {
-                color: white;
-                background: rgba(255,255,255,0.1);
-            }
-            .stat-card {
-                background: white;
-                border-radius: 10px;
-                padding: 1.5rem;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                margin-bottom: 1rem;
-            }
+            body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+            .stat-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
+            .stat-number { font-size: 2em; font-weight: bold; color: #007bff; }
+            .stat-label { color: #666; margin-top: 5px; }
+            .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+            .action-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+            .action-card h3 { margin-top: 0; color: #333; }
+            .btn { display: inline-block; padding: 8px 16px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+            .btn:hover { background-color: #0056b3; }
+            .btn-secondary { background-color: #6c757d; }
+            .btn-secondary:hover { background-color: #545b62; }
+            .logout { background-color: #dc3545; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; }
+            .logout:hover { background-color: #c82333; }
+            h1 { color: #333; }
         </style>
     </head>
     <body>
-        <nav class="sidebar">
-            <div class="p-3 text-center border-bottom">
-                <h4>🏛️ Kesgrave CMS</h4>
-            </div>
-            <div class="p-3">
-                <a href="/dashboard" class="nav-link active">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                </a>
-                <a href="/admin/events" class="nav-link">
-                    <i class="fas fa-calendar me-2"></i>Events
-                </a>
-                <a href="/admin/meetings" class="nav-link">
-                    <i class="fas fa-handshake me-2"></i>Meetings
-                </a>
-                <hr style="border-color: rgba(255,255,255,0.2);">
-                <a href="/logout" class="nav-link">
-                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                </a>
-            </div>
-        </nav>
+        <div class="header">
+            <h1>Kesgrave CMS Dashboard</h1>
+            <a href="/logout" class="logout">Logout</a>
+        </div>
         
-        <div class="main-content">
-            <h1>Dashboard</h1>
-            <div class="alert alert-success">
-                <h5>✅ CMS is Working!</h5>
-                <p>Your frontend should now connect successfully. The API endpoints are responding with sample data.</p>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ event_count }}</div>
+                <div class="stat-label">Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ meeting_count }}</div>
+                <div class="stat-label">Meetings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ slide_count }}</div>
+                <div class="stat-label">Slides</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <div class="action-card">
+                <h3>Events Management</h3>
+                <p>Manage community events and activities.</p>
+                <a href="/events" class="btn">View Events</a>
+                <a href="/events/add" class="btn">Add Event</a>
             </div>
             
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="stat-card">
-                        <h5><i class="fas fa-calendar text-success"></i> Events</h5>
-                        <h3>{{ event_count }}</h3>
-                        <p>Events in database</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="stat-card">
-                        <h5><i class="fas fa-handshake text-info"></i> Meetings</h5>
-                        <h3>{{ meeting_count }}</h3>
-                        <p>Meetings in database</p>
-                    </div>
-                </div>
+            <div class="action-card">
+                <h3>Meetings Management</h3>
+                <p>Manage council meetings and agendas.</p>
+                <a href="/meetings" class="btn">View Meetings</a>
+                <a href="/meetings/add" class="btn">Add Meeting</a>
             </div>
             
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Website Status</h5>
-                        </div>
-                        <div class="card-body">
-                            <p><strong>Frontend:</strong> <a href="https://kesgravetowncouncil.onrender.com" target="_blank">https://kesgravetowncouncil.onrender.com</a></p>
-                            <p><strong>API Base:</strong> {{ request.url_root }}api/</p>
-                            <p><strong>Status:</strong> <span class="badge bg-success">All API endpoints working</span></p>
-                        </div>
-                    </div>
-                </div>
+            <div class="action-card">
+                <h3>Homepage Slides</h3>
+                <p>Manage homepage slider content.</p>
+                <a href="/slides" class="btn">View Slides</a>
+                <a href="/slides/add" class="btn">Add Slide</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>Database Info</h3>
+                <p>Database: {{ db_path }}</p>
+                <a href="/health" class="btn btn-secondary">Health Check</a>
             </div>
         </div>
     </body>
     </html>
-    ''', 
-    event_count=Event.query.count(),
-    meeting_count=Meeting.query.count()
-    )
+    ''', event_count=event_count, meeting_count=meeting_count, slide_count=slide_count, db_path=db_path)
 
-# Basic admin routes
-@app.route('/admin/events')
+@app.route('/health')
+def health_check():
+    try:
+        # Test database connection
+        event_count = Event.query.count()
+        meeting_count = Meeting.query.count()
+        slide_count = Slide.query.count()
+        
+        return jsonify({
+            "status": "healthy",
+            "database": "connected",
+            "database_path": db_path,
+            "counts": {
+                "events": event_count,
+                "meetings": meeting_count,
+                "slides": slide_count
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy", 
+            "error": str(e),
+            "database_path": db_path,
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/events')
 @login_required
-def admin_events():
+def list_events():
     events = Event.query.order_by(Event.date.desc()).all()
     return render_template_string('''
-    <h1>Events Management</h1>
-    <p>{{ event_count }} events in database</p>
-    <ul>
-    {% for event in events %}
-        <li>{{ event.title }} - {{ event.date.strftime('%Y-%m-%d %H:%M') if event.date }}</li>
-    {% endfor %}
-    </ul>
-    <a href="/dashboard">Back to Dashboard</a>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Events - Kesgrave CMS</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+            th { background-color: #f8f9fa; }
+            .btn { display: inline-block; padding: 6px 12px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 2px; }
+            .btn:hover { background-color: #0056b3; }
+            .btn-danger { background-color: #dc3545; }
+            .btn-danger:hover { background-color: #c82333; }
+            h1 { color: #333; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Events ({{ event_count }})</h1>
+            <div>
+                <a href="/events/add" class="btn">Add New Event</a>
+                <a href="/dashboard" class="btn" style="background-color: #6c757d;">Back to Dashboard</a>
+            </div>
+        </div>
+        
+        {% if events %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.date.strftime('%Y-%m-%d %H:%M') if event.date }}</td>
+                    <td>{{ event.location or 'N/A' }}</td>
+                    <td>
+                        <a href="/events/edit/{{ event.id }}" class="btn">Edit</a>
+                        <a href="/events/delete/{{ event.id }}" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No events found. <a href="/events/add">Add the first event</a>.</p>
+        {% endif %}
+    </body>
+    </html>
     ''', events=events, event_count=len(events))
 
-@app.route('/admin/meetings')
+@app.route('/meetings')
 @login_required
-def admin_meetings():
+def list_meetings():
     meetings = Meeting.query.order_by(Meeting.date.desc()).all()
     return render_template_string('''
-    <h1>Meetings Management</h1>
-    <p>{{ meeting_count }} meetings in database</p>
-    <ul>
-    {% for meeting in meetings %}
-        <li>{{ meeting.title }} - {{ meeting.date.strftime('%Y-%m-%d %H:%M') if meeting.date }}</li>
-    {% endfor %}
-    </ul>
-    <a href="/dashboard">Back to Dashboard</a>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Meetings - Kesgrave CMS</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+            th { background-color: #f8f9fa; }
+            .btn { display: inline-block; padding: 6px 12px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 2px; }
+            .btn:hover { background-color: #0056b3; }
+            .btn-danger { background-color: #dc3545; }
+            .btn-danger:hover { background-color: #c82333; }
+            h1 { color: #333; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Meetings ({{ meeting_count }})</h1>
+            <div>
+                <a href="/meetings/add" class="btn">Add New Meeting</a>
+                <a href="/dashboard" class="btn" style="background-color: #6c757d;">Back to Dashboard</a>
+            </div>
+        </div>
+        
+        {% if meetings %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meeting in meetings %}
+                <tr>
+                    <td>{{ meeting.title }}</td>
+                    <td>{{ meeting.date.strftime('%Y-%m-%d %H:%M') if meeting.date }}</td>
+                    <td>{{ meeting.location or 'N/A' }}</td>
+                    <td>
+                        <a href="/meetings/edit/{{ meeting.id }}" class="btn">Edit</a>
+                        <a href="/meetings/delete/{{ meeting.id }}" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No meetings found. <a href="/meetings/add">Add the first meeting</a>.</p>
+        {% endif %}
+    </body>
+    </html>
     ''', meetings=meetings, meeting_count=len(meetings))
 
-# Create tables
+# Create tables and ensure database exists
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("✅ Database tables created/verified successfully")
+        
+        # Test database connection
+        event_count = Event.query.count()
+        meeting_count = Meeting.query.count()
+        slide_count = Slide.query.count()
+        print(f"📊 Database stats - Events: {event_count}, Meetings: {meeting_count}, Slides: {slide_count}")
+        
+    except Exception as e:
+        print(f"❌ Error with database: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
